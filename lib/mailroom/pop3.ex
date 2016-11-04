@@ -231,6 +231,8 @@ defmodule Mailroom.POP3 do
     case msg do
       <<"+OK", msg :: binary>> ->
         {:ok, msg}
+      <<"* OK", msg :: binary>> ->
+        {:ok, msg}
       <<"-ERR", reason :: binary>> ->
         {:error, String.strip(reason)}
     end

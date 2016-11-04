@@ -427,7 +427,7 @@ defmodule Mailroom.IMAP do
     do: %{state | cmd_map: Map.delete(cmd_map, cmd_tag)}
 
   defp send_command(caller, command, %{socket: socket, cmd_number: cmd_number, cmd_map: cmd_map} = state) do
-    cmd_tag = "A#{String.pad_leading(Integer.to_string(cmd_number), 3, "0")}"
+    cmd_tag = "A#{pad_leading(Integer.to_string(cmd_number), 3, "0")}"
     :ok = Socket.send(socket, [cmd_tag, " ", command, "\r\n"])
     %{state | cmd_number: cmd_number + 1, cmd_map: Map.put_new(cmd_map, cmd_tag, %{command: hd(List.wrap(command)), caller: caller})}
   end
@@ -470,5 +470,50 @@ defmodule Mailroom.IMAP do
   defp parse_capability(string) do
     [list | _] = String.split(String.strip(string), "]", parts: 2)
     String.split(list, " ")
+  end
+
+  defp pad_leading(string, count, padding) when is_binary(padding) do
+    pad_leading(string, count, String.graphemes(padding))
+  end
+
+  defp pad_leading(string, count, [_ | _] = padding)
+      when is_binary(string) and is_integer(count) and count >= 0 do
+    pad(:leading, string, count, padding)
+  end
+
+  defp pad(kind, string, count, padding) do
+    string_len = String.length(string)
+    if string_len >= count do
+      string
+    else
+      filler = build_filler(count - string_len, padding, padding, 0, [])
+      case kind do
+        :leading -> [filler | string]
+        :trailing -> [string | filler]
+      end
+      |> IO.iodata_to_binary
+    end
+  end
+
+  defp build_filler(0, _source, _padding, _size, filler), do: filler
+
+  defp build_filler(count, source, [], size, filler) do
+    rem_filler =
+      rem(count, size)
+      |> build_filler(source, source, 0, [])
+    filler =
+      filler
+      |> IO.iodata_to_binary
+      |> String.duplicate(div(count, size) + 1)
+    [filler | rem_filler]
+  end
+
+  defp build_filler(count, source, [elem | rest], size, filler)
+      when is_binary(elem) do
+    build_filler(count - 1, source, rest, size + 1, [filler | elem])
+  end
+
+  defp build_filler(_count, _source, [elem | _rest], _size, _filler) do
+    raise ArgumentError, "expected a string padding element, got: #{inspect(elem)}"
   end
 end

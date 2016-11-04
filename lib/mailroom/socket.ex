@@ -40,7 +40,7 @@ defmodule Mailroom.Socket do
     if state.debug, do: IO.puts("[connecting]")
 
     connect_opts = Keyword.merge(@connect_opts, opts)
-    addr = String.to_charlist(server)
+    addr = String.to_char_list(server)
     case do_connect(addr, state.ssl, port, [:binary | connect_opts], state.timeout) do
       {:ok, socket} -> {:ok, %{state | socket: socket}}
       {:error, reason} -> {:error, to_string(reason)}

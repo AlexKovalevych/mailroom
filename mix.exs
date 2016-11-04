@@ -8,7 +8,7 @@ defmodule Mailroom.Mixfile do
     [app: :mailroom,
      name: "Mailroom",
      version: @version,
-     elixir: "~> 1.3",
+     elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
@@ -45,7 +45,7 @@ defmodule Mailroom.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:timex, "~> 3.1.0", optional: true},
+      {:timex, "~> 2.2", optional: true},
       # DEV
       {:credo, "~> 0.5.0", only: :dev},
       # Docs

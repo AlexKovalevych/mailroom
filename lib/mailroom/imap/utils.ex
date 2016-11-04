@@ -183,10 +183,12 @@ defmodule Mailroom.IMAP.Utils do
 
   if Code.ensure_compiled?(Timex) do
     def parse_datetime(datetime) do
-      with {:error, _} <- Timex.parse(datetime, "{RFC822}"),
-           {:error, _} <- Timex.parse(datetime, "{D}-{Mshort}-{YYYY} {h24}:{m}:{s} {Z}") do
-        {:error, "Unable to parse #{datetime}"}
-      else
+      case Timex.parse(datetime, "{RFC822}") do
+        {:error, _} ->
+          case Timex.parse(datetime, "{D}-{Mshort}-{YYYY} {h24}:{m}:{s} {Z}") do
+            {:error, _} -> {:error, "Unable to parse #{datetime}"}
+            {:ok, datetime} -> datetime
+          end
         {:ok, datetime} -> datetime
       end
     end
